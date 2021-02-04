@@ -21,6 +21,7 @@ use LeKoala\EmailTemplates\Models\SentEmail;
 use LeKoala\EmailTemplates\Helpers\EmailUtils;
 use LeKoala\EmailTemplates\Models\EmailTemplate;
 use LeKoala\EmailTemplates\Helpers\SubsiteHelper;
+use SilverStripe\View\Parsers\ShortcodeParser;
 
 /**
  * An improved and more pleasant base Email class to use on your project
@@ -422,7 +423,11 @@ class BetterEmail extends Email
      */
     public function renderWithData($content)
     {
-        $viewer = SSViewer::fromString($content);
+        $scParsedContent = htmlspecialchars_decode(trim($content));
+        $scParsedContent = ShortcodeParser::get()->parse($scParsedContent);
+        $scParsedContent = str_replace(['{% ',' %}'], ['<% ',' %>'], $scParsedContent);
+
+        $viewer = SSViewer::fromString($scParsedContent);
         $data = $this->getData();
         // SSViewer_DataPresenter requires array
         if (is_object($data)) {

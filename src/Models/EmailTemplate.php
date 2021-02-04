@@ -23,6 +23,8 @@ use SilverStripe\SiteConfig\SiteConfig;
 use LeKoala\EmailTemplates\Email\BetterEmail;
 use LeKoala\EmailTemplates\Helpers\FluentHelper;
 use LeKoala\EmailTemplates\Admin\EmailTemplatesAdmin;
+use SilverStripe\View\Parsers\HTML4Value;
+use SilverStripe\View\Parsers\ShortcodeParser;
 
 /**
  * User defined email templates
@@ -55,7 +57,7 @@ class EmailTemplate extends DataObject
         'Category' => 'Varchar(255)',
         'Code' => 'Varchar(255)',
         // Content
-        'Content' => 'HTMLText',
+        'Content' => 'Text',
         'Callout' => 'HTMLText',
         // Configuration
         'Disabled' => 'Boolean',
@@ -383,9 +385,8 @@ class EmailTemplate extends DataObject
             $email->setSubject($this->Subject);
         }
 
-        // Use dbObject to handle shortcodes as well
         $email->setData([
-            'EmailContent' => $this->dbObject('Content')->forTemplate(),
+            'EmailContent' => $this->Content,
             'Callout' => $this->dbObject('Callout')->forTemplate(),
         ]);
 
@@ -467,6 +468,9 @@ class EmailTemplate extends DataObject
                         foreach ($parts as $part) {
                             if (is_string($curr)) {
                                 $curr = [];
+                                if(!is_object($object)) {
+                                    continue;
+                                }
                                 $object->$part = $curr;
                             }
                             $object->$part = '{' . "$objectName.$part" . '}';
