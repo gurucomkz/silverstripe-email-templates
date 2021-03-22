@@ -254,18 +254,18 @@ class EmailTemplate extends DataObject
 
         $models = $this->getAvailableModels();
 
-        $modelsByClass = array();
-        $classes = array();
+        $modelsByClass = [];
+        $classes = [];
         foreach ($models as $name => $model) {
             $classes[] = $model;
             if (!isset($modelsByClass[$model])) {
-                $modelsByClass[$model] = array();
+                $modelsByClass[$model] = [];
             }
             $modelsByClass[$model][] = $name;
         }
         $classes = array_unique($classes);
 
-        $locales = array();
+        $locales = [];
         // if (class_exists('Fluent')) {
         //     $locales = Fluent::locales();
         // }
@@ -433,7 +433,7 @@ class EmailTemplate extends DataObject
      */
     public function setPreviewData(BetterEmail $email)
     {
-        $data = array();
+        $data = [];
 
         // Get an array of data like ["Body" => "My content", "Callout" => "The callout..."]
         $emailData = $email->getData();
@@ -460,7 +460,7 @@ class EmailTemplate extends DataObject
                         if (isset($data[$objectName])) {
                             $object = $data[$objectName];
                         } else {
-                            $object = new ArrayData(array());
+                            $object = new ArrayData([]);
                         }
                         $curr = $object;
 
@@ -468,7 +468,7 @@ class EmailTemplate extends DataObject
                         foreach ($parts as $part) {
                             if (is_string($curr)) {
                                 $curr = [];
-                                if(!is_object($object)) {
+                                if (!is_object($object)) {
                                     continue;
                                 }
                                 $object->$part = $curr;

@@ -425,7 +425,7 @@ class BetterEmail extends Email
     {
         $scParsedContent = htmlspecialchars_decode(trim($content));
         $scParsedContent = ShortcodeParser::get()->parse($scParsedContent);
-        $scParsedContent = str_replace(['{% ',' %}'], ['<% ',' %>'], $scParsedContent);
+        $scParsedContent = str_replace(['{% ', ' %}'], ['<% ', ' %>'], $scParsedContent);
 
         $viewer = SSViewer::fromString($scParsedContent);
         $data = $this->getData();

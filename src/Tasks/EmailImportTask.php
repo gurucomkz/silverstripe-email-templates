@@ -65,9 +65,9 @@ class EmailImportTask extends BuildTask
         }
 
         // Select which subsite to import emails to
-        $importToSubsite = array();
+        $importToSubsite = [];
         if ($subsiteSupport) {
-            $subsites = array();
+            $subsites = [];
             if ($importToSubsite == 'all') {
                 $subsites = SubsiteHelper::listSubsites();
             } elseif (is_numeric($importToSubsite)) {
@@ -84,7 +84,7 @@ class EmailImportTask extends BuildTask
             }
             if ($subsiteSupport && SubsiteHelper::currentSubsiteID()) {
                 DB::alteration_message("Importing to current subsite. Run from main site to import other subsites at once.", "created");
-                $subsites = array();
+                $subsites = [];
             }
             if (!empty($subsites)) {
                 DB::alteration_message("Importing to subsites : " . implode(',', array_values($subsites)), "created");
@@ -114,7 +114,7 @@ class EmailImportTask extends BuildTask
                 // We collect only one locale, restrict the list
                 if ($chosenLocales) {
                     $arr = explode(',', $chosenLocales);
-                    $locales = array();
+                    $locales = [];
                     foreach ($arr as $a) {
                         $a = FluentHelper::get_locale_from_lang($a);
                         $locales[] = $a;
@@ -210,13 +210,13 @@ class EmailImportTask extends BuildTask
             ]
             */
 
-            $translationTable = array();
+            $translationTable = [];
             foreach ($entities as $entity => $data) {
                 if ($locales) {
                     foreach ($locales as $locale) {
                         i18n::set_locale($locale);
                         if (!isset($translationTable[$entity])) {
-                            $translationTable[$entity] = array();
+                            $translationTable[$entity] = [];
                         }
                         $translationTable[$entity][$locale] = i18n::_t($entity, $data);
                     }
@@ -226,7 +226,7 @@ class EmailImportTask extends BuildTask
                 }
             }
 
-            $contentLocale = array();
+            $contentLocale = [];
             // May be null
             if ($locales) {
                 foreach ($locales as $locale) {
@@ -320,7 +320,7 @@ class EmailImportTask extends BuildTask
 
     public static function checkContentForErrors($content)
     {
-        $errors = array();
+        $errors = [];
         if (strpos($content, '<% with') !== false) {
             $errors[] = 'Replace "with" blocks by plain calls to the variable';
         }
