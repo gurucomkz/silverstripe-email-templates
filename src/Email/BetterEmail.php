@@ -21,6 +21,7 @@ use LeKoala\EmailTemplates\Helpers\SubsiteHelper;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Security\DefaultAdminService;
 use SilverStripe\View\ArrayData;
+use SilverStripe\View\Parsers\ShortcodeParser;
 use SilverStripe\View\ViewableData;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
@@ -507,7 +508,11 @@ class BetterEmail extends Email
      */
     public function renderWithData($content)
     {
-        $viewer = SSViewer::fromString($content);
+        $scParsedContent = htmlspecialchars_decode(trim($content));
+        $scParsedContent = ShortcodeParser::get()->parse($scParsedContent);
+        $scParsedContent = str_replace(['{% ', ' %}'], ['<% ', ' %>'], $scParsedContent);
+
+        $viewer = SSViewer::fromString($scParsedContent);
         $data = $this->getData();
 
         $result = (string) $viewer->process($data);
