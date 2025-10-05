@@ -60,9 +60,9 @@ class SentEmail extends DataObject
     public function setBody(string $v)
     {
         if ($this->config()->get('compress_body') && function_exists('gzdeflate')) {
-            $compressed = self::COMPRESSED_SIGNATURE . base64_encode(gzdeflate($v, 9)); // Use maximum compression level
+            $compressed = gzdeflate($v, 9); // Use maximum compression level
             if ($compressed !== false) {
-                $this->record['Body'] = $compressed;
+                $this->record['Body'] = self::COMPRESSED_SIGNATURE . base64_encode($compressed);
                 return;
             }
         }

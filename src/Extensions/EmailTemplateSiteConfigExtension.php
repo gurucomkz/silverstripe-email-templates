@@ -6,10 +6,10 @@ use Exception;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Control\Director;
-use SilverStripe\ORM\DataExtension;
 use SilverStripe\Control\Email\Email;
 use SilverStripe\SiteConfig\SiteConfig;
 use LeKoala\EmailTemplates\Models\EmailTemplate;
+use SilverStripe\Core\Extension;
 use SilverStripe\Forms\HTMLEditor\HTMLEditorField;
 
 /**
@@ -19,11 +19,12 @@ use SilverStripe\Forms\HTMLEditor\HTMLEditorField;
  * @property string $DefaultFromEmail
  * @property string $ContactEmail
  *
- * @property-read SiteConfig&EmailTemplateSiteConfigExtension $owner
+ * @extends Extension<SiteConfig|EmailTemplateSiteConfigExtension>
+ * @mixin SiteConfig
  *
  * @author Kalyptus SPRL <thomas@kalyptus.be>
  */
-class EmailTemplateSiteConfigExtension extends DataExtension
+class EmailTemplateSiteConfigExtension extends Extension
 {
 
     private static $db = [
@@ -56,7 +57,7 @@ class EmailTemplateSiteConfigExtension extends DataExtension
 
     public function EmailDefaultRecipient()
     {
-        if ($this->owner->ContactEmail) {
+        if ($this->owner->ContactEmail) { // @phpstan-ignore property.notFound
             return $this->owner->ContactEmail;
         }
 
@@ -79,7 +80,7 @@ class EmailTemplateSiteConfigExtension extends DataExtension
 
     public function EmailDefaultSender()
     {
-        if ($this->owner->DefaultFromEmail) {
+        if ($this->owner->DefaultFromEmail) { // @phpstan-ignore property.notFound
             return $this->owner->DefaultFromEmail;
         }
 
@@ -112,8 +113,8 @@ class EmailTemplateSiteConfigExtension extends DataExtension
     public function EmailLogoTemplate()
     {
         // Use EmailLogo if defined
-        if ($this->owner->EmailLogoID) {
-            return $this->owner->EmailLogo();
+        if ($this->owner->EmailLogoID) { // @phpstan-ignore property.notFound
+            return $this->owner->EmailLogo(); // @phpstan-ignore method.notFound
         }
         // Otherwise, use configurable field
         $field = EmailTemplate::config()->get('logo_field');

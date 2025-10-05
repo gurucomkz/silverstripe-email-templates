@@ -7,7 +7,6 @@ use BadMethodCallException;
 use LeKoala\EmailTemplates\Extensions\EmailTemplateSiteConfigExtension;
 use SilverStripe\i18n\i18n;
 use SilverStripe\Control\HTTP;
-use SilverStripe\View\SSViewer;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Security\Member;
 use SilverStripe\Control\Director;
@@ -20,8 +19,9 @@ use LeKoala\EmailTemplates\Models\EmailTemplate;
 use LeKoala\EmailTemplates\Helpers\SubsiteHelper;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Security\DefaultAdminService;
-use SilverStripe\View\ArrayData;
-use SilverStripe\View\ViewableData;
+use SilverStripe\Model\ArrayData;
+use SilverStripe\TemplateEngine\SSTemplateEngine;
+use SilverStripe\View\ViewLayerData;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Part\AbstractPart;
@@ -101,9 +101,9 @@ class BetterEmail extends Email
 
     /**
      * Additional data available in a template.
-     * Used in the same way than {@link ViewableData->customize()}.
+     * Used in the same way than {@link ArrayData->customize()}.
      */
-    private ViewableData $data;
+    private ArrayData $data;
 
     private bool $dataHasBeenSet = false;
 
@@ -133,7 +133,7 @@ class BetterEmail extends Email
             // Call method because variable is private
             parent::setHTMLTemplate($defaultTemplate);
         }
-        $this->data = ViewableData::create();
+        $this->data = ArrayData::create();
     }
 
     /**
@@ -190,10 +190,10 @@ class BetterEmail extends Email
     }
 
     /**
-     * @param string $body The email body
+     * @param string|AbstractPart|null $body The email body
      * @return static
      */
-    public function setBody(AbstractPart|string $body = null): static
+    public function setBody(AbstractPart|string|null $body = null): static
     {
         $this->text(null);
 
@@ -210,7 +210,7 @@ class BetterEmail extends Email
      * IsEmail: used to detect if rendering an email template rather than a page template
      * BaseUrl: used to get the base URL for the email
      */
-    public function getData(): ViewableData
+    public function getData(): ArrayData
     {
         $extraData = [
             'IsEmail' => true,
@@ -257,7 +257,7 @@ class BetterEmail extends Email
     }
 
     /**
-     * @param array|ViewableData $data The template data to set
+     * @param array|ArrayData $data The template data to set
      * @return $this
      */
     public function setData($data)
@@ -282,7 +282,7 @@ class BetterEmail extends Email
      *
      * Calling setData() once means that any content set via text()/html()/setBody() will have no effect
      */
-    protected function setDataInternal(array|ViewableData $data)
+    protected function setDataInternal(array|ArrayData $data)
     {
         if (is_array($data)) {
             $data = ArrayData::create($data);
@@ -507,10 +507,9 @@ class BetterEmail extends Email
      */
     public function renderWithData($content)
     {
-        $viewer = SSViewer::fromString($content);
-        $data = $this->getData();
+        $data = ViewLayerData::create($this->getData());
+        $result = SSTemplateEngine::create()->renderString($content, $data);
 
-        $result = (string) $viewer->process($data);
         $result = self::rewriteURLs($result);
         return $result;
     }
@@ -720,12 +719,11 @@ class BetterEmail extends Email
     /**
      * Wrapper to report proper SiteConfig type
      *
-     * @return SiteConfig|EmailTemplateSiteConfigExtension
+     * @return EmailTemplateSiteConfigExtension
      */
     public function currentSiteConfig()
     {
-        /** @var SiteConfig|EmailTemplateSiteConfigExtension */
-        return SiteConfig::current_site_config();
+        return SiteConfig::current_site_config(); // @phpstan-ignore return.type
     }
     /**
      * Set to
@@ -865,7 +863,7 @@ class BetterEmail extends Email
     /**
      * Turn all relative URLs in the content to absolute URLs
      */
-    protected static function rewriteURLs(AbstractPart|string $html = null)
+    protected static function rewriteURLs(AbstractPart|string|null $html = null)
     {
         if ($html instanceof AbstractPart) {
             $html = $html->bodyToString();

@@ -7,7 +7,7 @@ use SilverStripe\Forms\Tab;
 use SilverStripe\i18n\i18n;
 use SilverStripe\Core\ClassInfo;
 use SilverStripe\ORM\DataObject;
-use SilverStripe\View\ArrayData;
+use SilverStripe\Model\ArrayData;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Security\Member;
 use SilverStripe\Control\Director;
@@ -402,8 +402,8 @@ class EmailTemplate extends DataObject
         if ($this->DefaultSender) {
             $email->setFrom($this->DefaultSender);
         } else {
-            /** @var SiteConfig|EmailTemplateSiteConfigExtension */
-            $SiteConfig = SiteConfig::current_site_config();
+            /** @var EmailTemplateSiteConfigExtension */
+            $SiteConfig = SiteConfig::current_site_config(); // @phpstan-ignore varTag.nativeType
             $email->setFrom($SiteConfig->EmailDefaultSender());
         }
         if ($this->DefaultRecipient) {
@@ -445,7 +445,7 @@ class EmailTemplate extends DataObject
         $data = [];
 
         // Get an array of data like ["Body" => "My content", "Callout" => "The callout..."]
-        $emailData = $email->getData();
+        $emailData = $email->getData()->toMap();
 
         // Parse the data for variables
         // For now, simply replace them by their name in curly braces

@@ -6,8 +6,8 @@ use LeKoala\EmailTemplates\Helpers\SubsiteHelper;
 use LeKoala\EmailTemplates\Models\Emailing;
 use LeKoala\EmailTemplates\Models\EmailTemplate;
 use LeKoala\EmailTemplates\Models\SentEmail;
+use SilverStripe\Core\Extension;
 use SilverStripe\ORM\DataQuery;
-use SilverStripe\ORM\DataExtension;
 use SilverStripe\Security\Permission;
 use SilverStripe\ORM\Queries\SQLSelect;
 use SilverStripe\Security\Member;
@@ -15,10 +15,14 @@ use SilverStripe\Security\Member;
 /**
  * Add subsites support
  *
- * @property-read EmailTemplate|SentEmail|Emailing $owner
  * @author lekoala
+ * 
+ * @extends Extension<EmailTemplate|SentEmail|Emailing>
+ * 
+ * @property int $SubsiteID
+ * 
  */
-class EmailSubsiteExtension extends DataExtension
+class EmailSubsiteExtension extends Extension
 {
 
     private static $has_one = [
@@ -36,7 +40,7 @@ class EmailSubsiteExtension extends DataExtension
     /**
      * Update any requests to limit the results to the current site
      */
-    public function augmentSQL(SQLSelect $query, DataQuery $dataQuery = null)
+    public function augmentSQL(SQLSelect $query, ?DataQuery $dataQuery = null)
     {
         if (SubsiteHelper::subsiteFilterDisabled()) {
             return;
@@ -76,8 +80,6 @@ class EmailSubsiteExtension extends DataExtension
 
     public function onBeforeWrite()
     {
-        parent::onBeforeWrite();
-
         // Assign to current subsite when created
         if (!$this->owner->ID && !$this->owner->SubsiteID) {
             $this->owner->SubsiteID = SubsiteHelper::currentSubsiteID();

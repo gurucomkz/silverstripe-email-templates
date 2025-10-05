@@ -16,6 +16,8 @@ use LeKoala\EmailTemplates\Models\EmailTemplate;
 use LeKoala\EmailTemplates\Helpers\SubsiteHelper;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\i18n\TextCollection\i18nTextCollector;
+use SilverStripe\PolyExecution\PolyOutput;
+use Symfony\Component\Console\Input\InputInterface;
 
 /**
  * Import email templates provided from ss files
@@ -32,31 +34,30 @@ class EmailImportTask extends BuildTask
 {
     private static $segment = 'EmailImportTask';
 
-    protected $title = "Email import task";
-    protected $description = "Finds all *Email.ss templates and imports them into the CMS, if they don't already exist.";
+    protected string $title = "Email import task";
+    protected static string $description = "Finds all *Email.ss templates and imports them into the CMS, if they don't already exist.";
 
-    public function run($request)
+    protected function execute(InputInterface $input, PolyOutput $output): int
     {
         $subsiteSupport = SubsiteHelper::usesSubsite();
         $fluentSupport = FluentHelper::usesFluent();
 
-        echo 'Run with ?clear=1 to clear empty database before running the task<br/>';
-        echo 'Run with ?overwrite=soft|hard to overwrite templates that exists in the cms. Soft will replace template if not modified by the user, hard will replace template even if modified by user.<br/>';
-        echo 'Run with ?templates=xxx,yyy to specify which template should be imported<br/>';
+        $output->writeln('Run with ?clear=1 to clear empty database before running the task');
+        $output->writeln('Run with ?overwrite=soft|hard to overwrite templates that exists in the cms. Soft will replace template if not modified by the user, hard will replace template even if modified by user.');
+        $output->writeln('Run with ?templates=xxx,yyy to specify which template should be imported');
         if ($subsiteSupport) {
-            echo 'Run with ?subsite=all|subsiteID to create email templates in all subsites (including main site) or only in the chosen subsite (if a subsite is active, it will be used by default).<br/>';
+            $output->writeln('Run with ?subsite=all|subsiteID to create email templates in all subsites (including main site) or only in the chosen subsite (if a subsite is active, it will be used by default).');
         }
         if ($fluentSupport) {
-            echo 'Run with ?locales=fr,en to choose which locale to import.<br/>';
+            $output->writeln('Run with ?locales=fr,en to choose which locale to import.');
         }
-        echo '<strong>Remember to flush the templates/translations if needed</strong><br/>';
-        echo '<hr/>';
+        $output->writeln('<strong>Remember to flush the templates/translations if needed</strong>');
 
-        $overwrite = $request->getVar('overwrite');
-        $clear = $request->getVar('clear');
-        $templatesToImport = $request->getVar('templates');
-        $importToSubsite = $request->getVar('subsite');
-        $chosenLocales = $request->getVar('locales');
+        $overwrite = $input->getArgument('overwrite');
+        $clear = $input->getArgument('clear');
+        $templatesToImport = $input->getArgument('templates');
+        $importToSubsite = $input->getArgument('subsite');
+        $chosenLocales = $input->getArgument('locales');
 
         // Normalize argument
         if ($overwrite && $overwrite != 'soft' && $overwrite != 'hard') {
@@ -189,11 +190,12 @@ class EmailImportTask extends BuildTask
             // Analyze content to find incompatibilities
             $errors = self::checkContentForErrors($content);
             if (!empty($errors)) {
-                echo "<div style='color:red'>Invalid syntax was found in '$relativeFilePath'. Please fix these errors before importing the template<ul>";
+                $output->writeln("<div style='color:red'>Invalid syntax was found in '$relativeFilePath'. Please fix these errors before importing the template");
+                $output->startList();
                 foreach ($errors as $error) {
-                    echo '<li>' . $error . '</li>';
+                    $output->writeListItem($error);
                 }
-                echo '</ul></div>';
+                $output->stopList();
                 continue;
             }
 
@@ -314,6 +316,7 @@ class EmailImportTask extends BuildTask
                 DB::alteration_message("Imported <b>{$emailTemplate->Code}</b>", "created");
             }
         }
+        return 0;
     }
 
     public static function checkContentForErrors($content)
