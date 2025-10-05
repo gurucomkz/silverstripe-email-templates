@@ -3,6 +3,7 @@
     "features": {
         "ghcr.io/devcontainers/features/docker-in-docker:2": {},
         "ghcr.io/shyim/devcontainers-features/php:0": {
+            "version": "8.3",
             "extensionsExtra": "intl mysqli mbstring"
         }
     },
